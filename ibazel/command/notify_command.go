@@ -89,6 +89,11 @@ func (c *notifyCommand) Start() (*bytes.Buffer, error) {
 }
 
 func (c *notifyCommand) NotifyOfChanges() *bytes.Buffer {
+	if !c.IsSubprocessRunning() {
+		outputBuffer, _ := c.Start()
+		return outputBuffer
+	}
+
 	b := bazelNew()
 	b.SetStartupArgs(c.startupArgs)
 	b.SetArguments(c.bazelArgs)
