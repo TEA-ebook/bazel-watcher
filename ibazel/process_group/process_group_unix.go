@@ -42,7 +42,7 @@ func (pg *unixProcessGroup) Start() error {
 }
 
 func (pg *unixProcessGroup) Kill() error {
-	return syscall.Kill(-pg.root.Process.Pid, syscall.SIGKILL)
+	return syscall.Kill(-pg.root.Process.Pid, syscall.SIGTERM)
 }
 
 func (pg *unixProcessGroup) Wait() error {
