@@ -393,6 +393,31 @@ func (i *IBazel) setupRun(target string) command.Command {
 		}
 	}
 
+	// Check also on the tags of the run_under command
+	const prefix = "--run_under="
+	for _, arg := range i.bazelArgs {
+		if strings.HasPrefix(arg, prefix) {
+			start := len(prefix)
+			end := 0
+			for end = start; end < len(arg); end++ {
+				if arg[end] == ' ' {
+					break
+				}
+			}
+
+			rule, err = i.queryRule(arg[start:end])
+			if err == nil {
+				for _, attr := range rule.Attribute {
+					if *attr.Name == "tags" && *attr.Type == blaze_query.Attribute_STRING_LIST {
+						if contains(attr.StringListValue, "ibazel_notify_changes") {
+							commandNotify = true
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if commandNotify {
 		log.Logf("Launching with notifications")
 		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args)
