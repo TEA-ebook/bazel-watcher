@@ -379,6 +379,7 @@ func (i *IBazel) setupRun(target string) command.Command {
 	rule, err := i.queryRule(target)
 	if err != nil {
 		log.Errorf("Error: %v", err)
+		osExit(4)
 	}
 
 	i.targetDecider(target, rule)
@@ -422,8 +423,7 @@ func (i *IBazel) queryRule(rule string) (*blaze_query.Rule, error) {
 
 	res, err := b.Query(rule)
 	if err != nil {
-		log.Errorf("Error running Bazel %v", err)
-		osExit(4)
+		return nil, err
 	}
 
 	for _, target := range res.Target {
