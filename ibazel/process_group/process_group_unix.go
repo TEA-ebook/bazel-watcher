@@ -29,7 +29,7 @@ type unixProcessGroup struct {
 // arguments.
 func Command(name string, arg ...string) ProcessGroup {
 	root := exec.Command(name, arg...)
-	root.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	root.SysProcAttr = &syscall.SysProcAttr{}
 	return &unixProcessGroup{root}
 }
 

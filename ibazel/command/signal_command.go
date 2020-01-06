@@ -71,6 +71,7 @@ func (c *signalCommand) Start() (*bytes.Buffer, error) {
 	outputBuffer, c.pg = start(b, c.target, c.args)
 
 	c.pg.RootProcess().Env = append(os.Environ(), "IBAZEL_SIGNAL_CHANGES=y")
+	c.pg.RootProcess().Stdin = os.Stdin
 
 	if err := c.pg.Start(); err != nil {
 		log.Errorf("Error starting process: %v", err)

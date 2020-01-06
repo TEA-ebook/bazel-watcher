@@ -71,6 +71,7 @@ func (c *defaultCommand) Start() (*bytes.Buffer, error) {
 	outputBuffer, c.pg = start(b, c.target, c.args)
 
 	c.pg.RootProcess().Env = os.Environ()
+	c.pg.RootProcess().Stdin = os.Stdin
 
 	var err error
 	if err = c.pg.Start(); err != nil {
