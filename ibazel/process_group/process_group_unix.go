@@ -54,6 +54,10 @@ func (pg *unixProcessGroup) Terminate() error {
 	return syscall.Kill(-pg.root.Process.Pid, syscall.SIGTERM)
 }
 
+func (pg *unixProcessGroup) RefreshSignal() error {
+	return syscall.Kill(pg.root.Process.Pid, syscall.SIGHUP)
+}
+
 func (pg *unixProcessGroup) Wait() error {
 	return pg.root.Wait()
 }

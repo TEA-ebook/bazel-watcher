@@ -20,6 +20,7 @@ go_library(
         "command.go",
         "default_command.go",
         "notify_command.go",
+        "signal_command.go",
     ],
     importpath = "github.com/bazelbuild/bazel-watcher/ibazel/command",
     visibility = ["//ibazel:__subpackages__"],

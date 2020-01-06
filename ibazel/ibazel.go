@@ -41,6 +41,7 @@ var osExit = os.Exit
 var bazelNew = bazel.New
 var commandDefaultCommand = command.DefaultCommand
 var commandNotifyCommand = command.NotifyCommand
+var commandSignalCommand = command.SignalCommand
 
 type State string
 type runnableCommand func(...string) (*bytes.Buffer, error)
@@ -376,15 +377,18 @@ func contains(l []string, e string) bool {
 }
 
 type CommandRunOptions struct {
-	commandNotify   bool
-	useKill         bool
+	mode     string
+	useKill  bool
 }
 
 func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOptions) {
 	for _, attr := range rule.Attribute {
 		if *attr.Name == "tags" && *attr.Type == blaze_query.Attribute_STRING_LIST {
 			if contains(attr.StringListValue, "ibazel_notify_changes") {
-				options.commandNotify = true
+				options.mode = "notify"
+			}
+			if contains(attr.StringListValue, "ibazel_signal_changes") {
+				options.mode = "signal"
 			}
 			if contains(attr.StringListValue, "ibazel_graceful_kill") {
 				options.useKill = false
@@ -396,7 +400,7 @@ func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOpti
 
 func (i *IBazel) setupRun(target string) command.Command {
 	commandOptions := CommandRunOptions{
-		commandNotify: false,
+		mode: "default",
 		useKill: true,
 	}
 
@@ -427,9 +431,12 @@ func (i *IBazel) setupRun(target string) command.Command {
 		}
 	}
 
-	if commandOptions.commandNotify {
+	if commandOptions.mode == "notify" {
 		log.Logf("Launching with notifications")
 		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
+	} else if commandOptions.mode == "signal" {
+		log.Logf("Launching with signaling")
+		return commandSignalCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
 	} else {
 		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
 	}
