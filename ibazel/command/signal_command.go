@@ -93,9 +93,11 @@ func (c *signalCommand) NotifyOfChanges() *bytes.Buffer {
 	b.WriteToStderr(true)
 	b.WriteToStdout(true)
 
-	outputBuffer, _ := b.Build(c.target)
+	outputBuffer, res := b.Build(c.target)
+	if res == nil {
+		c.pg.RefreshSignal()
+	}
 
-	c.pg.RefreshSignal()
 	return outputBuffer
 }
 
