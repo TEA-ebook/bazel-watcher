@@ -394,10 +394,10 @@ func (i *IBazel) setupRun(target string) command.Command {
 	}
 
 	// Check also on the tags of the run_under command
-	const prefix = "--run_under="
+	const prefix = "--run_under=//"
 	for _, arg := range i.bazelArgs {
 		if strings.HasPrefix(arg, prefix) {
-			start := len(prefix)
+			start := len(prefix)-2
 			end := 0
 			for end = start; end < len(arg); end++ {
 				if arg[end] == ' ' {
