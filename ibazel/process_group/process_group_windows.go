@@ -31,7 +31,7 @@ type winProcessGroup struct {
 
 // Command creates a new ProcessGroup with a root command specified by the
 // arguments.
-func Command(name string, arg ...string) ProcessGroup {
+func Command(name string, arg []string, keepStdin bool) ProcessGroup {
 	root := exec.Command(name, arg...)
 	root.SysProcAttr = &syscall.SysProcAttr{CreationFlags: createSuspended}
 	return &winProcessGroup{root, syscall.Handle(0), syscall.Handle(0)}

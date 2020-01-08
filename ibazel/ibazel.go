@@ -377,8 +377,9 @@ func contains(l []string, e string) bool {
 }
 
 type CommandRunOptions struct {
-	mode     string
-	useKill  bool
+	mode      string
+	useKill   bool
+	keepStdin bool
 }
 
 func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOptions) {
@@ -393,6 +394,9 @@ func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOpti
 			if contains(attr.StringListValue, "ibazel_graceful_kill") {
 				options.useKill = false
 			}
+			if contains(attr.StringListValue, "ibazel_keep_stdin") {
+				options.keepStdin = true
+			}
 		}
 	}
 }
@@ -400,8 +404,9 @@ func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOpti
 
 func (i *IBazel) setupRun(target string) command.Command {
 	commandOptions := CommandRunOptions{
-		mode: "default",
-		useKill: true,
+		mode:      "default",
+		useKill:   true,
+		keepStdin: false,
 	}
 
 	rule, err := i.queryRule(target)
@@ -436,9 +441,9 @@ func (i *IBazel) setupRun(target string) command.Command {
 		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
 	} else if commandOptions.mode == "signal" {
 		log.Logf("Launching with signaling")
-		return commandSignalCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
+		return commandSignalCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill, commandOptions.keepStdin)
 	} else {
-		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
+		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill, commandOptions.keepStdin)
 	}
 }
 

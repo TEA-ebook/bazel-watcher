@@ -70,7 +70,7 @@ func (c *notifyCommand) Start() (*bytes.Buffer, error) {
 	b.WriteToStdout(true)
 
 	var outputBuffer *bytes.Buffer
-	outputBuffer, c.pg = start(b, c.target, c.args)
+	outputBuffer, c.pg = start(b, c.target, c.args, false)
 	// Keep the writer around.
 	var err error
 	c.stdin, err = c.pg.RootProcess().StdinPipe()

@@ -41,7 +41,7 @@ type Command interface {
 
 // start will be called by most implementations since this logic is extremely
 // common.
-func start(b bazel.Bazel, target string, args []string) (*bytes.Buffer, process_group.ProcessGroup) {
+func start(b bazel.Bazel, target string, args []string, keepStdin bool) (*bytes.Buffer, process_group.ProcessGroup) {
 	var filePattern strings.Builder
 	filePattern.WriteString("bazel_script_path*")
 	if runtime.GOOS == "windows" {
@@ -64,9 +64,12 @@ func start(b bazel.Bazel, target string, args []string) (*bytes.Buffer, process_
 
 	// Now that we have built the target, construct a executable form of it for
 	// execution in a go routine.
-	cmd := execCommand(runScriptPath, args...)
+	cmd := execCommand(runScriptPath, args, keepStdin)
 	cmd.RootProcess().Stdout = os.Stdout
 	cmd.RootProcess().Stderr = os.Stderr
+	if keepStdin {
+		cmd.RootProcess().Stdin = os.Stdin
+	}
 
 	return outputBuffer, cmd
 }

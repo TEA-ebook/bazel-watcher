@@ -28,19 +28,21 @@ type signalCommand struct {
 	bazelArgs   []string
 	args        []string
 	useKill     bool
+	keepStdin   bool
 
 	pg    process_group.ProcessGroup
 }
 
 // SignalCommand is an alternate mode for starting a command. In this mode the
 // command will be notified by SIGHUP that the source files have changed.
-func SignalCommand(startupArgs []string, bazelArgs []string, target string, args []string, useKill bool) Command {
+func SignalCommand(startupArgs []string, bazelArgs []string, target string, args []string, useKill bool, keepStdin bool) Command {
 	return &signalCommand{
 		startupArgs: startupArgs,
 		target:      target,
 		bazelArgs:   bazelArgs,
 		args:        args,
 		useKill:     useKill,
+		keepStdin:   keepStdin,
 	}
 }
 
@@ -68,10 +70,9 @@ func (c *signalCommand) Start() (*bytes.Buffer, error) {
 	b.WriteToStdout(true)
 
 	var outputBuffer *bytes.Buffer
-	outputBuffer, c.pg = start(b, c.target, c.args)
+	outputBuffer, c.pg = start(b, c.target, c.args, c.keepStdin)
 
 	c.pg.RootProcess().Env = append(os.Environ(), "IBAZEL_SIGNAL_CHANGES=y")
-	c.pg.RootProcess().Stdin = os.Stdin
 
 	if err := c.pg.Start(); err != nil {
 		log.Errorf("Error starting process: %v", err)

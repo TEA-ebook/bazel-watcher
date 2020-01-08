@@ -27,9 +27,11 @@ type unixProcessGroup struct {
 
 // Command creates a new ProcessGroup with a root command specified by the
 // arguments.
-func Command(name string, arg ...string) ProcessGroup {
+func Command(name string, arg []string, keepStdin bool) ProcessGroup {
 	root := exec.Command(name, arg...)
-	root.SysProcAttr = &syscall.SysProcAttr{}
+	if !keepStdin {
+		root.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	}
 	return &unixProcessGroup{root}
 }
 
