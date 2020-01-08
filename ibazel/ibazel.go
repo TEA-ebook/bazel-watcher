@@ -420,9 +420,9 @@ func (i *IBazel) setupRun(target string) command.Command {
 
 	if commandNotify {
 		log.Logf("Launching with notifications")
-		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args)
+		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args, true)
 	} else {
-		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args)
+		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, true)
 	}
 }
 

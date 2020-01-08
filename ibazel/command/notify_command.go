@@ -28,6 +28,7 @@ type notifyCommand struct {
 	startupArgs []string
 	bazelArgs   []string
 	args        []string
+	useKill     bool
 
 	pg    process_group.ProcessGroup
 	stdin io.WriteCloser
@@ -35,12 +36,13 @@ type notifyCommand struct {
 
 // NotifyCommand is an alternate mode for starting a command. In this mode the
 // command will be notified on stdin that the source files have changed.
-func NotifyCommand(startupArgs []string, bazelArgs []string, target string, args []string) Command {
+func NotifyCommand(startupArgs []string, bazelArgs []string, target string, args []string, useKill bool) Command {
 	return &notifyCommand{
 		startupArgs: startupArgs,
 		target:      target,
 		bazelArgs:   bazelArgs,
 		args:        args,
+		useKill:     useKill,
 	}
 }
 
@@ -49,12 +51,11 @@ func (c *notifyCommand) Terminate() {
 		return
 	}
 
-	// Kill it with fire by sending SIGKILL to the process PID which should
-	// propagate down to any subprocesses in the PGID (Process Group ID). To
-	// send to the PGID, send the signal to the negative of the process PID.
-	// Normally I would do this by calling c.cmd.Process.Signal, but that
-	// only goes to the PID not the PGID.
-	c.pg.Kill()
+	if c.useKill {
+		c.pg.Kill()
+	} else {
+		c.pg.Terminate()
+	}
 	c.pg.Wait()
 	c.pg.Close()
 	c.pg = nil

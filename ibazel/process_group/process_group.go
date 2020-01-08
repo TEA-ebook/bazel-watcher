@@ -35,6 +35,7 @@ type ProcessGroup interface {
 	RootProcess() *exec.Cmd
 	Start() error
 	Kill() error
+	Terminate() error
 	Wait() error
 	Close() error
 	CombinedOutput() ([]byte, error)

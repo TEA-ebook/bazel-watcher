@@ -105,6 +105,11 @@ func (pg *winProcessGroup) Kill() error {
 	return nil
 }
 
+func (pg *winProcessGroup) Terminate() error {
+	// Not yet implemented
+	return pg.Kill()
+}
+
 func (pg *winProcessGroup) Wait() error {
 	var code uint32
 	var key uint32

@@ -42,6 +42,15 @@ func (pg *unixProcessGroup) Start() error {
 }
 
 func (pg *unixProcessGroup) Kill() error {
+	// Kill it with fire by sending SIGKILL to the process PID which should
+	// propagate down to any subprocesses in the PGID (Process Group ID). To
+	// send to the PGID, send the signal to the negative of the process PID.
+	// Normally I would do this by calling c.cmd.Process.Signal, but that
+	// only goes to the PID not the PGID.
+	return syscall.Kill(-pg.root.Process.Pid, syscall.SIGKILL)
+}
+
+func (pg *unixProcessGroup) Terminate() error {
 	return syscall.Kill(-pg.root.Process.Pid, syscall.SIGTERM)
 }
 
