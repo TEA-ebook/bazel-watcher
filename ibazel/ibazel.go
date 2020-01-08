@@ -375,7 +375,31 @@ func contains(l []string, e string) bool {
 	return false
 }
 
+type CommandRunOptions struct {
+	commandNotify   bool
+	useKill         bool
+}
+
+func (i *IBazel) checkTargetTags(rule *blaze_query.Rule, options *CommandRunOptions) {
+	for _, attr := range rule.Attribute {
+		if *attr.Name == "tags" && *attr.Type == blaze_query.Attribute_STRING_LIST {
+			if contains(attr.StringListValue, "ibazel_notify_changes") {
+				options.commandNotify = true
+			}
+			if contains(attr.StringListValue, "ibazel_graceful_kill") {
+				options.useKill = false
+			}
+		}
+	}
+}
+
+
 func (i *IBazel) setupRun(target string) command.Command {
+	commandOptions := CommandRunOptions{
+		commandNotify: false,
+		useKill: true,
+	}
+
 	rule, err := i.queryRule(target)
 	if err != nil {
 		log.Errorf("Error: %v", err)
@@ -384,14 +408,7 @@ func (i *IBazel) setupRun(target string) command.Command {
 
 	i.targetDecider(target, rule)
 
-	commandNotify := false
-	for _, attr := range rule.Attribute {
-		if *attr.Name == "tags" && *attr.Type == blaze_query.Attribute_STRING_LIST {
-			if contains(attr.StringListValue, "ibazel_notify_changes") {
-				commandNotify = true
-			}
-		}
-	}
+	i.checkTargetTags(rule, &commandOptions)
 
 	// Check also on the tags of the run_under command
 	const prefix = "--run_under=//"
@@ -405,24 +422,16 @@ func (i *IBazel) setupRun(target string) command.Command {
 				}
 			}
 
-			rule, err = i.queryRule(arg[start:end])
-			if err == nil {
-				for _, attr := range rule.Attribute {
-					if *attr.Name == "tags" && *attr.Type == blaze_query.Attribute_STRING_LIST {
-						if contains(attr.StringListValue, "ibazel_notify_changes") {
-							commandNotify = true
-						}
-					}
-				}
-			}
+			rule, _ = i.queryRule(arg[start:end])
+			i.checkTargetTags(rule, &commandOptions)
 		}
 	}
 
-	if commandNotify {
+	if commandOptions.commandNotify {
 		log.Logf("Launching with notifications")
-		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args, true)
+		return commandNotifyCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
 	} else {
-		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, true)
+		return commandDefaultCommand(i.startupArgs, i.bazelArgs, target, i.args, commandOptions.useKill)
 	}
 }
 
